@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image Semantic Search</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>🔎 Semantic Image Search</h1>
+    <form id="search-form" class="search-form">
+      <input
+        id="search-input"
+        type="text"
+        placeholder="Try: “a dog running on the beach”, “mountains at sunset”, “food on a table”…"
+        autocomplete="off"
+        autofocus
+      />
+      <div class="method-toggle" role="radiogroup" aria-label="Search method">
+        <button type="button" data-method="semantic" class="method-btn active">Semantic</button>
+        <button type="button" data-method="filename" class="method-btn">Filename</button>
+      </div>
+      <button type="submit" class="search-btn">Search</button>
+    </form>
+    <p id="status-line" class="status-line">Loading images…</p>
+  </header>
+
+  <main>
+    <div id="grid" class="grid"></div>
+  </main>
+
+  <div id="lightbox" class="lightbox hidden">
+    <div class="lightbox-backdrop"></div>
+    <div class="lightbox-content">
+      <button id="lightbox-close" class="lightbox-close" aria-label="Close">✕</button>
+      <img id="lightbox-img" alt="" />
+      <div class="lightbox-actions">
+        <span id="lightbox-caption"></span>
+        <button id="find-similar-btn" class="similar-btn">✨ Find similar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
