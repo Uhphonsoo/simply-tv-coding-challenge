@@ -112,6 +112,10 @@ Move originals + thumbnails to object storage behind a CDN; generate thumbnails 
 3. Used /compact every time I feel like the context is too large and I am on the same task.
 4. Used a session just for UI.
 
+## Other Notes
+- Attempted to make the UI more visually appealing by creating a listed view when the search is engaged.
+- The embedding step almost killed my Mac when I changed to a better embedder. I hope it works on your machine.
+
 ## Video demo checklist
 
 1. Load the page — show the full gallery of thumbnails.
