@@ -82,6 +82,8 @@ To search your own folder instead of the sample set: drop images into `data/imag
 
 All three share the same in-memory index built once at startup (`app/indexer.py`), so adding a new search method is just a new ranking function in `app/search.py`.
 
+> **Note on filename search with this demo's sample set:** the committed images are named `picsum_<id>.jpg` (from the download script), which carries no descriptive information. Filename search can only match against that literal string, so queries like "dog" or "sunset" will correctly return nothing in that mode — there's no text to match. This is expected, and is the point: it's meant to contrast with semantic search finding real matches for the same query. With real-world, descriptively-named files (`sunset_beach_hawaii.jpg`), this mode becomes a genuinely useful fast literal fallback for when you already know roughly what a file is called and don't need CLIP's semantic understanding.
+
 ## FAQ / design decisions
 
 **How is image serving kept low-latency and cheap?**
@@ -108,4 +110,4 @@ Move originals + thumbnails to object storage behind a CDN; generate thumbnails 
 2. Type a natural-language query (e.g. *"a dog running"*, *"mountains at sunset"*) — show ranked results updating live.
 3. Click a result to open the lightbox with the full-resolution image.
 4. Click **Find similar** — show the image-to-image results.
-5. Toggle to **Filename** search and show the literal-match fallback.
+5. Toggle to **Filename** search and type part of a real filename (e.g. `picsum_1`) to show the literal-match fallback — note on camera that it won't match on content/description with this sample set's non-descriptive filenames (see README note above), only on the actual filename string.
