@@ -21,7 +21,7 @@ IMAGES_DIR = BASE_DIR / "data" / "images"
 THUMBS_DIR = BASE_DIR / "data" / "thumbs"
 EMBEDDINGS_PATH = BASE_DIR / "data" / "embeddings.npz"
 THUMB_SIZE = (320, 320)
-MODEL_NAME = "clip-ViT-B-32"
+MODEL_NAME = "clip-ViT-L-14"
 SUPPORTED_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
