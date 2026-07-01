@@ -6,6 +6,7 @@ static frontend, all from a single process (`uvicorn app.main:app`).
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
@@ -32,7 +33,7 @@ def _results_payload(results: list[dict]) -> list[dict]:
     return [
         {
             "filename": r["filename"],
-            "score": r["score"],
+            "score": r.get("score"),
             "thumb_url": f"/thumbs/{r['filename']}",
             "image_url": f"/images/{r['filename']}",
         }
@@ -43,11 +44,15 @@ def _results_payload(results: list[dict]) -> list[dict]:
 @app.get("/api/images")
 def list_images():
     index = _state["index"]
-    return _results_payload([{"filename": name, "score": 1.0} for name in index.filenames])
+    return _results_payload([{"filename": name} for name in index.filenames])
 
 
 @app.get("/api/search")
-def search(q: str = Query(..., min_length=1), method: str = "semantic", k: int = 48):
+def search(
+    q: str = Query(..., min_length=1, max_length=500),
+    method: Literal["semantic", "filename"] = "semantic",
+    k: int = Query(48, ge=1, le=200),
+):
     index = _state["index"]
     if method == "filename":
         results = filename_search(index, q, k)
@@ -57,7 +62,7 @@ def search(q: str = Query(..., min_length=1), method: str = "semantic", k: int =
 
 
 @app.get("/api/similar/{filename}")
-def similar(filename: str, k: int = 24):
+def similar(filename: str, k: int = Query(24, ge=1, le=200)):
     index = _state["index"]
     if filename not in index.filenames:
         raise HTTPException(status_code=404, detail="image not found")

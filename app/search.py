@@ -53,4 +53,4 @@ def similar_search(index: ImageIndex, filename: str, k: int = 24):
 def filename_search(index: ImageIndex, query: str, k: int = 24):
     q = query.lower().strip()
     matches = [name for name in index.filenames if q in name.lower()]
-    return [{"filename": name, "score": 1.0} for name in matches[:k]]
+    return [{"filename": name} for name in matches[:k]]

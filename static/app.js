@@ -14,6 +14,29 @@ let method = "semantic";
 let currentLightboxFile = null;
 let debounceTimer = null;
 
+async function fetchJSON(url) {
+  let res;
+  try {
+    res = await fetch(url);
+  } catch {
+    throw new Error("Network error — is the server running?");
+  }
+  if (!res.ok) {
+    let message = res.statusText || `HTTP ${res.status}`;
+    try {
+      const body = await res.json();
+      if (typeof body.detail === "string") message = body.detail;
+      else if (Array.isArray(body.detail)) {
+        message = body.detail.map((d) => d.msg).join("; ");
+      }
+    } catch {
+      // body wasn't JSON, keep the statusText fallback
+    }
+    throw new Error(message);
+  }
+  return res.json();
+}
+
 function renderResults(results, label) {
   grid.innerHTML = "";
   if (results.length === 0) {
@@ -23,9 +46,12 @@ function renderResults(results, label) {
   for (const r of results) {
     const card = document.createElement("div");
     card.className = "card";
+    const badge = typeof r.score === "number"
+      ? `<span class="score-badge">${(r.score * 100).toFixed(0)}%</span>`
+      : "";
     card.innerHTML = `
       <img src="${r.thumb_url}" loading="lazy" alt="${r.filename}" />
-      <span class="score-badge">${(r.score * 100).toFixed(0)}%</span>
+      ${badge}
     `;
     card.addEventListener("click", () => openLightbox(r));
     grid.appendChild(card);
@@ -34,10 +60,13 @@ function renderResults(results, label) {
 
 async function loadAllImages() {
   statusLine.textContent = "Loading images…";
-  const res = await fetch("/api/images");
-  const data = await res.json();
-  renderResults(data);
-  statusLine.textContent = `${data.length} image${data.length === 1 ? "" : "s"} indexed. Type a query above to search.`;
+  try {
+    const data = await fetchJSON("/api/images");
+    renderResults(data);
+    statusLine.textContent = `${data.length} image${data.length === 1 ? "" : "s"} indexed. Type a query above to search.`;
+  } catch (err) {
+    statusLine.textContent = `Couldn't load images: ${err.message}`;
+  }
 }
 
 async function runSearch(query) {
@@ -45,10 +74,13 @@ async function runSearch(query) {
     return loadAllImages();
   }
   statusLine.textContent = `Searching (${method}) for “${query}”…`;
-  const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&method=${method}`);
-  const data = await res.json();
-  renderResults(data, query);
-  statusLine.textContent = `${data.length} result${data.length === 1 ? "" : "s"} for “${query}” (${method} search).`;
+  try {
+    const data = await fetchJSON(`/api/search?q=${encodeURIComponent(query)}&method=${method}`);
+    renderResults(data, query);
+    statusLine.textContent = `${data.length} result${data.length === 1 ? "" : "s"} for “${query}” (${method} search).`;
+  } catch (err) {
+    statusLine.textContent = `Search failed: ${err.message}`;
+  }
 }
 
 function openLightbox(result) {
@@ -69,11 +101,14 @@ findSimilarBtn.addEventListener("click", async () => {
   const file = currentLightboxFile;
   closeLightbox();
   statusLine.textContent = `Finding images similar to ${file}…`;
-  const res = await fetch(`/api/similar/${encodeURIComponent(file)}`);
-  const data = await res.json();
-  renderResults(data, file);
-  statusLine.textContent = `${data.length} image${data.length === 1 ? "" : "s"} similar to ${file}.`;
-  searchInput.value = "";
+  try {
+    const data = await fetchJSON(`/api/similar/${encodeURIComponent(file)}`);
+    renderResults(data, file);
+    statusLine.textContent = `${data.length} image${data.length === 1 ? "" : "s"} similar to ${file}.`;
+    searchInput.value = "";
+  } catch (err) {
+    statusLine.textContent = `Couldn't find similar images: ${err.message}`;
+  }
 });
 
 lightboxClose.addEventListener("click", closeLightbox);
