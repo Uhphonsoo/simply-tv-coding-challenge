@@ -40,22 +40,35 @@ async function fetchJSON(url) {
 function renderResults(results, label) {
   grid.innerHTML = "";
   if (results.length === 0) {
+    grid.classList.remove("grid--ranked");
     grid.innerHTML = `<div class="empty-state">No matches found${label ? ` for “${label}”` : ""}.</div>`;
     return;
   }
-  for (const r of results) {
+
+  const ranked = results.every((r) => typeof r.score === "number");
+  grid.classList.toggle("grid--ranked", ranked);
+
+  results.forEach((r, i) => {
     const card = document.createElement("div");
-    card.className = "card";
-    const badge = typeof r.score === "number"
-      ? `<span class="score-badge">${(r.score * 100).toFixed(0)}%</span>`
-      : "";
-    card.innerHTML = `
-      <img src="${r.thumb_url}" loading="lazy" alt="${r.filename}" />
-      ${badge}
-    `;
+    if (ranked) {
+      card.className = "result-row";
+      const pct = Math.round(r.score * 100);
+      card.innerHTML = `
+        <span class="result-rank">${i + 1}</span>
+        <img class="result-thumb" src="${r.thumb_url}" loading="lazy" alt="${r.filename}" />
+        <div class="result-info">
+          <div class="result-filename">${r.filename}</div>
+          <div class="result-score-bar"><div class="result-score-fill" style="width:${pct}%"></div></div>
+          <div class="result-score-label">${pct}% match</div>
+        </div>
+      `;
+    } else {
+      card.className = "card";
+      card.innerHTML = `<img src="${r.thumb_url}" loading="lazy" alt="${r.filename}" />`;
+    }
     card.addEventListener("click", () => openLightbox(r));
     grid.appendChild(card);
-  }
+  });
 }
 
 async function loadAllImages() {
