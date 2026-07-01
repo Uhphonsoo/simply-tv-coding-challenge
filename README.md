@@ -74,13 +74,15 @@ To search your own folder instead of the sample set: drop images into `data/imag
 
 ## Search methods
 
-| Method | Endpoint | How it ranks |
-|---|---|---|
-| Semantic (text → image) | `GET /api/search?q=...&method=semantic` | cosine similarity between CLIP text embedding of the query and cached CLIP image embeddings |
-| Find similar (image → image) | `GET /api/similar/{filename}` | cosine similarity using an existing image's cached embedding as the query vector |
-| Filename | `GET /api/search?q=...&method=filename` | plain substring match on filename |
+| Method | Query input | Endpoint | How it ranks |
+|---|---|---|---|
+| Semantic (text → image) | a typed sentence/phrase | `GET /api/search?q=...&method=semantic` | cosine similarity between a CLIP **text** embedding of the query and cached CLIP image embeddings |
+| Find similar (image → image) | an existing image (click-driven, no typing) | `GET /api/similar/{filename}` | cosine similarity using another **image's** cached CLIP embedding as the query vector |
+| Filename | a literal string | `GET /api/search?q=...&method=filename` | plain substring match on filename — no embeddings, no model involved |
 
-All three share the same in-memory index built once at startup (`app/indexer.py`), so adding a new search method is just a new ranking function in `app/search.py`.
+These are genuinely distinct along **what you can search with**: a description in words, an example image, or a known filename — each answering a different question ("what looks like *this idea*", "what looks like *this picture*", "what file *is this*"). You reach for a different one depending on what you have on hand at that moment, and each is exercised from a different point in the UI (the search box, an in-context "Find similar" button on an open image, and a mode toggle).
+
+Under the hood, Semantic and Find similar do share one implementation detail: both ultimately call the same `_rank()` cosine-similarity function in `app/search.py`, since they're really the same CLIP vector space entered from two different sides (text encoder vs. reusing a stored image encoding). Filename search shares nothing with either — it's pure string matching and doesn't touch the model or the embedding cache at all. The index (`app/indexer.py`) is shared by all three, so adding a fourth method is just a new ranking function in `app/search.py`.
 
 > **Note on filename search with this demo's sample set:** the committed images are named `picsum_<id>.jpg` (from the download script), which carries no descriptive information. Filename search can only match against that literal string, so queries like "dog" or "sunset" will correctly return nothing in that mode — there's no text to match. This is expected, and is the point: it's meant to contrast with semantic search finding real matches for the same query. With real-world, descriptively-named files (`sunset_beach_hawaii.jpg`), this mode becomes a genuinely useful fast literal fallback for when you already know roughly what a file is called and don't need CLIP's semantic understanding.
 

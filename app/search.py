@@ -1,12 +1,19 @@
 """
 Search implementations that operate on an already-built ImageIndex.
 
-Three methods are exposed, all returning a ranked list of
-(filename, score) tuples:
+Three methods are exposed, distinguished by what you search *with*, each
+returning a ranked list of (filename, score) tuples:
 
-- semantic_search: natural-language text -> images, via CLIP text encoder
-- similar_search:  image -> images, reusing a cached image embedding as the query
-- filename_search: plain substring match on filenames (fast literal fallback)
+- semantic_search: query with text -> CLIP text encoder embeds it, ranked
+  against cached CLIP image embeddings
+- similar_search:  query with an existing image -> reuses that image's
+  cached CLIP embedding as the query vector, ranked the same way
+- filename_search: query with a literal string -> plain substring match on
+  filenames, no model/embeddings involved
+
+semantic_search and similar_search both bottom out in the same cosine-
+similarity ranking (_rank, below) since they share one CLIP vector space;
+filename_search is a wholly separate, embedding-free technique.
 """
 
 from __future__ import annotations
