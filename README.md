@@ -106,6 +106,12 @@ CLIP is a general-purpose zero-shot model: it's good at scene/object/style-level
 **How would you productionize this?**
 Move originals + thumbnails to object storage behind a CDN; generate thumbnails in a background job on upload rather than synchronously; swap brute-force search for an ANN/vector-DB index; move indexing off the request path entirely (a queue + worker); add auth and per-user/tenant image scoping; add basic observability (search latency, cache hit rate).
 
+## Notes on Claude Code Usage
+1. Added a Claude skill "frontend-design" to help with designing beautiful UI.
+2. Used /clear every time I start a new independent task.
+3. Used /compact every time I feel like the context is too large and I am on the same task.
+4. Used a session just for UI.
+
 ## Video demo checklist
 
 1. Load the page — show the full gallery of thumbnails.
